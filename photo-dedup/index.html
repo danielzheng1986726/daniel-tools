@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可视化文件去重工具</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f1f5f9;
+            --accent: #38bdf8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        button {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .duplicate-group {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .group-header {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .file-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .file-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #0f172a;
+            border: 1px solid var(--border);
+        }
+
+        .file-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-path {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            word-break: break-all;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .tag-keep {
+            background: var(--success);
+            color: white;
+        }
+
+        .tag-delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        .flatten-plan {
+            margin-top: 30px;
+        }
+
+        .plan-item {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .arrow {
+            opacity: 0.4;
+        }
+
+        .actions-footer {
+            position: sticky;
+            bottom: 20px;
+            background: var(--accent);
+            color: var(--bg);
+            padding: 16px 40px;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(56, 189, 248, 0.4);
+            cursor: pointer;
+            font-weight: 800;
+            display: none;
+            z-index: 100;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>可视化文件去重工具</h1>
+            <p>扫描、可视化并安全地管理您的重复文件。</p>
+        </header>
+
+        <section class="controls">
+            <div class="input-group">
+                <input type="text" id="sourceDir" placeholder="请输入源目录路径..." value=".">
+                <button onclick="scan()">开始扫描</button>
+            </div>
+            <div class="toggle-group">
+                <input type="checkbox" id="flatToggle">
+                <label for="flatToggle">启用扁平化预览 (将唯一文件按年月提取到新目录)</label>
+                <div id="outputGroup" style="display:none; margin-left:10px;">
+                    <input type="text" id="outputDir" placeholder="输出目录..." style="padding: 8px;" value="output_flat">
+                </div>
+            </div>
+        </section>
+
+        <div id="results"></div>
+    </div>
+
+    <div id="actionBtn" class="actions-footer" onclick="execute()">
+        执行操作
+    </div>
+
+    <script>
+        let currentData = null;
+
+        document.getElementById('flatToggle').onchange = (e) => {
+            document.getElementById('outputGroup').style.display = e.target.checked ? 'block' : 'none';
+        };
+
+        function isImage(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
+        }
+
+        async function scan() {
+            const source = document.getElementById('sourceDir').value;
+            const flat = document.getElementById('flatToggle').checked;
+            const output = document.getElementById('outputDir').value;
+
+            const res = await fetch('/api/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ source, flat, output })
+            });
+
+            currentData = await res.json();
+            render();
+        }
+
+        function render() {
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+
+            if (currentData.duplicates.length > 0) {
+                results.innerHTML += `<h2>检测到重复文件 (${currentData.duplicates.length} 组)</h2>`;
+                currentData.duplicates.forEach(group => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'duplicate-group';
+
+                    let filesHtml = '';
+                    group.files.forEach((file, index) => {
+                        const isOriginal = index === 0;
+                        const previewHtml = isImage(file.name)
+                            ? `<img class="file-preview" src="/api/preview?path=${encodeURIComponent(file.path)}" alt="preview">`
+                            : `<div class="file-preview" style="display:flex;align-items:center;justify-content:center;font-size:0.6rem;opacity:0.5;">FILE</div>`;
+
+                        filesHtml += `
+                            <li class="file-item">
+                                ${previewHtml}
+                                <div class="file-info">
+                                    <strong>${file.name}</strong>
+                                    <span class="file-path">${file.path}</span>
+                                </div>
+                                <span class="tag ${isOriginal ? 'tag-keep' : 'tag-delete'}">
+                                    ${isOriginal ? '保留' : '删除'}
+                                </span>
+                            </li>
+                        `;
+                    });
+
+                    groupDiv.innerHTML = `
+                        <div class="group-header">
+                            <span>哈希值: ${group.hash.substring(0, 8)}...</span>
+                            <span>大小: ${(group.size / 1024).toFixed(2)} KB</span>
+                        </div>
+                        <ul class="file-list">${filesHtml}</ul>
+                    `;
+                    results.appendChild(groupDiv);
+                });
+            } else {
+                results.innerHTML += `<p style="text-align:center; opacity:0.6;">未发现重复文件。</p>`;
+            }
+
+            if (currentData.flattening_plan && currentData.flattening_plan.length > 0) {
+                const flatSec = document.createElement('div');
+                flatSec.className = 'flatten-plan';
+                flatSec.innerHTML = `<h2>按年/月归档预览</h2>`;
+
+                currentData.flattening_plan.forEach(item => {
+                    flatSec.innerHTML += `
+                        <div class="plan-item">
+                            <span class="file-path" title="${item.source}">${item.original_name}</span>
+                            <span class="arrow">→</span>
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:0.7rem; opacity:0.5;">目标目录: ${item.date}</span>
+                                <strong>${item.target_name.split('/').pop()}</strong>
+                            </div>
+                        </div>
+                    `;
+                });
+                results.appendChild(flatSec);
+            }
+
+            document.getElementById('actionBtn').style.display = 'block';
+        }
+
+        async function execute() {
+            if (!confirm("确定要执行这些操作吗？这将会永久删除或移动文件。")) return;
+
+            const actions = [];
+            currentData.duplicates.forEach(group => {
+                group.files.slice(1).forEach(file => {
+                    actions.push({ type: 'delete', source: file.path });
+                });
+            });
+
+            if (currentData.flattening_plan) {
+                const targetRootDir = document.getElementById('outputDir').value;
+                currentData.flattening_plan.forEach(item => {
+                    actions.push({
+                        type: 'move',
+                        source: item.source,
+                        target: `${targetRootDir}/${item.target_name}`
+                    });
+                });
+            }
+
+            const res = await fetch('/api/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actions })
+            });
+
+            const resultData = await res.json();
+            alert(`操作完成！已处理 ${resultData.results.length} 项。`);
+            location.reload();
+        }
+    </script>
+</body>
+
+</html>

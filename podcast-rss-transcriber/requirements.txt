@@ -1,0 +1,4 @@
+feedparser>=6.0,<7
+openai-whisper>=20231117
+requests>=2.31,<3
+torch>=2.0

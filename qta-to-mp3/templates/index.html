@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTA 音频转换助手</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <script>
+        window.API_BASE = {{ request.host_url | tojson }};
+    </script>
+
+    <div class="container">
+        <header>
+            <h1>QTA → MP3</h1>
+            <p class="subtitle">苹果语音备忘录 .qta 批量转 MP3</p>
+        </header>
+
+        <!-- ① 路径输入（主入口） -->
+        <div class="card">
+            <label class="card-title" for="pathInput">文件夹路径</label>
+            <div class="input-row">
+                <input type="text" id="pathInput"
+                       placeholder="粘贴路径，如 ~/Desktop/录音">
+                <button id="scanBtn" onclick="doScan()">扫描</button>
+            </div>
+            <p class="hint">输入包含 .qta 文件的文件夹路径，服务器直接读取本地磁盘，转换后 MP3 生成在原文件旁边。</p>
+        </div>
+
+        <!-- ② 拖放区（备选） -->
+        <details class="card drop-details">
+            <summary>或者：拖放 / 选择文件上传</summary>
+            <div id="dropZone" class="drop-zone">
+                <p>把 .qta 文件或文件夹拖到这里</p>
+                <div class="drop-actions">
+                    <button type="button" class="btn-sm" id="pickFolderBtn">选择文件夹</button>
+                    <button type="button" class="btn-sm" id="pickFilesBtn">选择文件</button>
+                </div>
+                <p class="hint">上传模式：文件上传到本机临时目录转换，完成后可下载 MP3。</p>
+            </div>
+            <input type="file" id="folderInput" class="hidden" webkitdirectory multiple>
+            <input type="file" id="fileInput" class="hidden" multiple accept=".qta">
+        </details>
+
+        <!-- ③ 文件列表 -->
+        <div class="card" id="listCard" style="display:none;">
+            <div class="list-header">
+                <span id="statusSummary">0 个文件</span>
+                <div class="list-actions">
+                    <button id="convertBtn" class="btn-primary" onclick="doConvert()" disabled>
+                        开始转换
+                    </button>
+                    <a id="downloadAllLink" class="btn-sm" style="display:none;" href="#">
+                        📦 下载全部 ZIP
+                    </a>
+                </div>
+            </div>
+            <ul id="fileList" class="file-list"></ul>
+        </div>
+    </div>
+
+<script>
+/* ── 状态 ── */
+let pollTimer = null;
+
+/* ── DOM ── */
+const pathInput    = document.getElementById('pathInput');
+const scanBtn      = document.getElementById('scanBtn');
+const convertBtn   = document.getElementById('convertBtn');
+const listCard     = document.getElementById('listCard');
+const fileList     = document.getElementById('fileList');
+const statusSummary = document.getElementById('statusSummary');
+const downloadAllLink = document.getElementById('downloadAllLink');
+const dropZone     = document.getElementById('dropZone');
+const folderInput  = document.getElementById('folderInput');
+const fileInput    = document.getElementById('fileInput');
+
+/* ── API 工具 ── */
+function apiUrl(path) {
+    return window.API_BASE.replace(/\/+$/, '') + path;
+}
+
+async function apiPost(path, body) {
+    const opts = { method: 'POST' };
+    if (body instanceof FormData) {
+        opts.body = body;
+    } else {
+        opts.headers = { 'Content-Type': 'application/json' };
+        opts.body = JSON.stringify(body);
+    }
+    const res = await fetch(apiUrl(path), opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+    return data;
+}
+
+/* ── ① 路径扫描 ── */
+async function doScan() {
+    const path = pathInput.value.trim();
+    if (!path) { alert('请输入路径'); return; }
+    scanBtn.disabled = true;
+    scanBtn.textContent = '扫描中…';
+    try {
+        const data = await apiPost('/api/scan', { path });
+        showFiles(data.files);
+        if (data.files.length) {
+            convertBtn.disabled = false;
+        } else {
+            alert('该目录下没有 .qta 文件');
+        }
+    } catch (e) {
+        alert(e.message);
+    } finally {
+        scanBtn.disabled = false;
+        scanBtn.textContent = '扫描';
+    }
+}
+
+pathInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doScan();
+});
+
+/* ── ② 拖放 / 选择上传 ── */
+document.getElementById('pickFolderBtn').onclick = () => folderInput.click();
+document.getElementById('pickFilesBtn').onclick  = () => fileInput.click();
+
+folderInput.addEventListener('change', (e) => {
+    uploadFiles(Array.from(e.target.files || []));
+    e.target.value = '';
+});
+fileInput.addEventListener('change', (e) => {
+    uploadFiles(Array.from(e.target.files || []));
+    e.target.value = '';
+});
+
+['dragenter', 'dragover'].forEach(ev =>
+    dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); })
+);
+dropZone.addEventListener('dragleave', (e) => {
+    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const items = await collectQtaFiles(e.dataTransfer);
+    if (!items.length) { alert('没有 .qta 文件'); return; }
+    uploadFileItems(items);
+});
+
+async function collectQtaFiles(dt) {
+    const out = [];
+    if (dt.items) {
+        for (let i = 0; i < dt.items.length; i++) {
+            const entry = dt.items[i].webkitGetAsEntry?.();
+            if (entry) await walkEntry(entry, '', out);
+        }
+        if (out.length) return out;
+    }
+    for (const f of dt.files) {
+        if (f.name.toLowerCase().endsWith('.qta'))
+            out.push({ file: f, rel: f.name });
+    }
+    return out;
+}
+
+async function walkEntry(entry, prefix, out) {
+    if (entry.isFile) {
+        if (!entry.name.toLowerCase().endsWith('.qta')) return;
+        const file = await new Promise((ok, err) => entry.file(ok, err));
+        out.push({ file, rel: prefix ? prefix + '/' + entry.name : entry.name });
+    } else if (entry.isDirectory) {
+        const base = prefix ? prefix + '/' + entry.name : entry.name;
+        const reader = entry.createReader();
+        let batch;
+        do {
+            batch = await new Promise((ok, err) => reader.readEntries(ok, err));
+            for (const child of batch) await walkEntry(child, base, out);
+        } while (batch.length);
+    }
+}
+
+function uploadFiles(fileArray) {
+    const items = fileArray
+        .filter(f => f.name.toLowerCase().endsWith('.qta'))
+        .map(f => ({ file: f, rel: (f.webkitRelativePath || f.name).replace(/^\/+/, '') }));
+    if (!items.length) { alert('没有 .qta 文件'); return; }
+    uploadFileItems(items);
+}
+
+async function uploadFileItems(items) {
+    dropZone.classList.add('busy');
+    try {
+        const form = new FormData();
+        for (const { file, rel } of items) form.append('files', file, rel);
+        const data = await apiPost('/api/upload', form);
+        showFiles(data.files);
+        // 上传成功后自动开始转换
+        if (data.files.length) doConvert();
+    } catch (e) {
+        alert(e.message);
+    } finally {
+        dropZone.classList.remove('busy');
+    }
+}
+
+/* ── ③ 转换 ── */
+async function doConvert() {
+    convertBtn.disabled = true;
+    convertBtn.textContent = '转换中…';
+    downloadAllLink.style.display = 'none';
+    try {
+        await apiPost('/api/convert', {});
+        startPolling();
+    } catch (e) {
+        alert(e.message);
+        convertBtn.disabled = false;
+        convertBtn.textContent = '开始转换';
+    }
+}
+
+/* ── ④ 轮询状态 ── */
+function startPolling() {
+    stopPolling();
+    pollTimer = setInterval(pollStatus, 600);
+    pollStatus();  // 立即查一次
+}
+
+function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+async function pollStatus() {
+    try {
+        const res = await fetch(apiUrl('/api/status'));
+        const data = await res.json();
+        updateList(data.files);
+        if (!data.converting) {
+            stopPolling();
+            onConvertDone(data.files);
+        }
+    } catch (e) {
+        console.error('poll error', e);
+    }
+}
+
+function onConvertDone(files) {
+    const doneCount = files.filter(f => f.status === 'done').length;
+    const errCount  = files.filter(f => f.status === 'error').length;
+    convertBtn.textContent = doneCount
+        ? `完成 ✓ (${doneCount} 个)`
+        : '开始转换';
+    convertBtn.disabled = false;
+
+    if (doneCount) {
+        downloadAllLink.href = apiUrl('/api/download-all');
+        downloadAllLink.style.display = '';
+    }
+    if (errCount) {
+        convertBtn.textContent += ` / ${errCount} 个失败`;
+    }
+}
+
+/* ── 渲染 ── */
+function showFiles(files) {
+    listCard.style.display = '';
+    statusSummary.textContent = `${files.length} 个 .qta 文件`;
+    convertBtn.disabled = files.length === 0;
+    convertBtn.textContent = '开始转换';
+    downloadAllLink.style.display = 'none';
+    renderList(files);
+}
+
+function renderList(files) {
+    fileList.innerHTML = '';
+    if (!files.length) {
+        fileList.innerHTML = '<li class="empty">没有文件</li>';
+        return;
+    }
+    for (const f of files) {
+        fileList.appendChild(makeFileItem(f));
+    }
+}
+
+function updateList(files) {
+    const summary = { pending: 0, converting: 0, done: 0, error: 0 };
+    for (const f of files) {
+        summary[f.status] = (summary[f.status] || 0) + 1;
+        const li = document.querySelector(`li[data-path="${CSS.escape(f.path)}"]`);
+        if (!li) continue;
+        li.querySelector('.status-badge').className = `status-badge s-${f.status}`;
+        li.querySelector('.status-badge').textContent = statusText(f.status);
+        const detail = li.querySelector('.file-detail');
+        if (f.status === 'done' && f.output_path) {
+            const dlUrl = apiUrl('/api/download') + '?path=' + encodeURIComponent(f.output_path);
+            detail.innerHTML = `<a href="${dlUrl}">⬇ ${esc(f.message || '下载')}</a>`;
+        } else if (f.status === 'error' && f.message) {
+            detail.textContent = f.message.slice(0, 120);
+            detail.classList.add('err');
+        }
+    }
+    const parts = [];
+    if (summary.converting) parts.push(`${summary.converting} 个转换中`);
+    if (summary.done) parts.push(`${summary.done} 个完成`);
+    if (summary.error) parts.push(`${summary.error} 个失败`);
+    if (summary.pending) parts.push(`${summary.pending} 个待处理`);
+    statusSummary.textContent = parts.join('，') || `${files.length} 个文件`;
+}
+
+function makeFileItem(f) {
+    const li = document.createElement('li');
+    li.className = 'file-item';
+    li.dataset.path = f.path;
+    li.innerHTML = `
+        <div class="file-info">
+            <span class="file-name">${esc(f.name)}</span>
+            <span class="file-detail"></span>
+        </div>
+        <span class="status-badge s-${f.status}">${statusText(f.status)}</span>
+    `;
+    return li;
+}
+
+function statusText(s) {
+    return { pending: '待处理', converting: '转换中…', done: '完成', error: '失败' }[s] || s;
+}
+
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+</script>
+</body>
+</html>

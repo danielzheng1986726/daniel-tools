@@ -1,0 +1,32 @@
+{
+  "clips": [
+    { "path": "assets/example-project/shot01.mp4" },
+    { "path": "assets/example-project/shot02.mp4", "transition": "fade" },
+    { "path": "assets/example-project/shot03.mp4" }
+  ],
+  "output": "output/example-final.mp4",
+  "resolution": "720x1280",
+  "transition_duration": 0.5,
+  "transition_type": "fade",
+  "audio": {
+    "path": "assets/example-project/bgm.mp3",
+    "volume": 0.3,
+    "fade_in": 2,
+    "fade_out": 3
+  },
+  "subtitles": {
+    "path": "assets/example-project/example.srt",
+    "font": "Heiti SC",
+    "size": 28
+  },
+  "text_overlays": [
+    {
+      "text": "示例片尾标题",
+      "start": 0,
+      "end": 3,
+      "position": "center",
+      "font_size": 48,
+      "font_color": "white"
+    }
+  ]
+}

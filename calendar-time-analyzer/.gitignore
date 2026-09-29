@@ -1,0 +1,3 @@
+# 根 .gitignore 排除了所有 *.ics（避免误传真实日历导出）。
+# sample.ics 是本工具自带的假数据示例，特意留住。
+!sample.ics

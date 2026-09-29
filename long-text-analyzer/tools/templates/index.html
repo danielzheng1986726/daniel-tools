@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章分析器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f8;
+            color: #2d3748;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .main {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+        .input-section, .output-section {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            resize: none;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        button:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+        }
+        .output-content {
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.8;
+            padding: 15px;
+        }
+        .output-content p {
+            margin: 10px 0;
+        }
+        .output-content ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        .output-content li {
+            margin: 5px 0;
+        }
+        .output-content h1, .output-content h2, .output-content h3 {
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
+        .output-content h1 {
+            font-size: 1.5em;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        .output-content h2 {
+            font-size: 1.3em;
+        }
+        .output-content h3 {
+            font-size: 1.1em;
+        }
+        .output-content blockquote {
+            border-left: 4px solid #e2e8f0;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #f8fafc;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .error {
+            color: #dc2626;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>文章分析器</h1>
+            <p>输入文章内容，获取智能分析结果</p>
+        </div>
+        <div class="main">
+            <div class="input-section">
+                <h2>输入文本</h2>
+                <textarea id="input-text" placeholder="在此输入要分析的文本..."></textarea>
+                <button id="analyze-btn" onclick="analyzeText()">开始分析</button>
+                <div id="error" class="error"></div>
+            </div>
+            <div class="output-section">
+                <h2>分析结果</h2>
+                <div id="loading" class="loading">分析中，请稍候...</div>
+                <div id="output" class="output-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeText() {
+            const inputText = document.getElementById('input-text').value.trim();
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const loading = document.getElementById('loading');
+            const output = document.getElementById('output');
+            const error = document.getElementById('error');
+
+            if (!inputText) {
+                error.textContent = '请输入要分析的文本';
+                error.style.display = 'block';
+                return;
+            }
+
+            try {
+                error.style.display = 'none';
+                analyzeBtn.disabled = true;
+                loading.style.display = 'block';
+                output.textContent = '';
+
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: inputText }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || '分析失败');
+                }
+
+                output.textContent = data.result;
+            } catch (err) {
+                error.textContent = err.message;
+                error.style.display = 'block';
+            } finally {
+                analyzeBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

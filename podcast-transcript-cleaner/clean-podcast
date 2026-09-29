@@ -1,0 +1,117 @@
+#!/bin/zsh
+#
+# clean-podcast - 用 podcast-transcript-editor skill 清洗播客 ASR 初稿
+#
+# 用法:
+#   clean-podcast                       → 自动列出 ~/Downloads 的 .md 文件让你选
+#   clean-podcast <input-file>          → 指定文件，输出名自动取文件名
+#   clean-podcast <input-file> <name>   → 指定文件和输出名
+#
+# 输出目录: 默认 ~/MyVault/podcasts/，可用环境变量 CLEAN_PODCAST_OUTPUT_DIR 覆盖
+
+set -euo pipefail
+
+OUTPUT_DIR="${CLEAN_PODCAST_OUTPUT_DIR:-$HOME/MyVault/podcasts}"
+
+# ── 无参数模式：从 ~/Downloads 里挑 .md 文件 ──
+if [ $# -lt 1 ]; then
+  DOWNLOADS="$HOME/Downloads"
+
+  # 列出所有 .md 文件，按最近修改排序，最多 5 个
+  CANDIDATES=("${(@f)$(ls -t "$DOWNLOADS"/*.md 2>/dev/null | head -5)}")
+
+  if [ ${#CANDIDATES[@]} -eq 0 ] || [ -z "${CANDIDATES[1]}" ]; then
+    echo "在 ~/Downloads 里没找到 .md 文件。"
+    echo ""
+    echo "用法: clean-podcast <input-file> [output-name]"
+    exit 1
+  fi
+
+  echo "📂 ~/Downloads 里的 .md 文件："
+  echo ""
+
+  for i in {1..${#CANDIDATES[@]}}; do
+    FNAME=$(basename "${CANDIDATES[$i]}")
+    MTIME=$(stat -f "%Sm" -t "%m-%d %H:%M" "${CANDIDATES[$i]}" 2>/dev/null || echo "?")
+    echo "  $i. $FNAME  ($MTIME)"
+  done
+
+  echo ""
+  read "CHOICE?选哪个？（输入编号，或 q 退出）: "
+
+  case "$CHOICE" in
+    q|Q) echo "已取消。"; exit 0 ;;
+    [1-5])
+      if [ "$CHOICE" -gt "${#CANDIDATES[@]}" ]; then
+        echo "编号超出范围。"; exit 1
+      fi
+      INPUT_FILE="${CANDIDATES[$CHOICE]}"
+      ;;
+    *)
+      echo "无效选择。"; exit 1 ;;
+  esac
+else
+  INPUT_FILE="$1"
+fi
+
+# ── 校验输入文件 ──
+if [ ! -f "$INPUT_FILE" ]; then
+  echo "错误: 找不到输入文件 $INPUT_FILE" >&2
+  exit 1
+fi
+
+# ── 输出文件名 ──
+DEFAULT_NAME=$(basename "$INPUT_FILE")
+DEFAULT_NAME="${DEFAULT_NAME%.*}"
+OUTPUT_NAME="${2:-$DEFAULT_NAME}"
+OUTPUT_PATH="$OUTPUT_DIR/${OUTPUT_NAME}.md"
+
+mkdir -p "$OUTPUT_DIR"
+
+if [ -f "$OUTPUT_PATH" ]; then
+  read "ANSWER?⚠️  目标文件已存在: $OUTPUT_PATH，覆盖? [y/N] "
+  case "$ANSWER" in
+    y|Y|yes|YES) ;;
+    *) echo "已取消。"; exit 0 ;;
+  esac
+fi
+
+echo ""
+echo "📝 输入: $INPUT_FILE"
+echo "📁 输出: $OUTPUT_PATH"
+echo "🔄 清洗中（首次调用 claude -p 可能要一两分钟）..."
+echo ""
+
+PROMPT="请用 podcast-transcript-editor skill 清洗这份播客 ASR 初稿。
+
+- 原始稿文件路径: $INPUT_FILE
+- 清洗后的成品请用 Write 工具写到这个绝对路径: $OUTPUT_PATH
+- 产出必须包含 YAML frontmatter、修订说明、转录正文三部分（按 skill 里定义的 output format）
+
+完成后请按以下格式回复（不要贴全文）：
+
+1. 文件保存路径
+2. 说话人识别结论
+3. 术语修正清单（简版，只列修正项和次数）
+
+4. 最后，如果有任何标记了 [?] 的存疑项，请在末尾用以下格式醒目列出：
+
+---
+⚠️ 需要你人工确认的存疑项（共 N 项）：
+  1. 「原文片段」→ 你的最佳猜测[?]（出现位置：第X段左右，理由：...）
+  2. ...
+如果没有存疑项，就写"无存疑项"。
+---
+
+这个存疑清单非常重要——它是用户唯一需要人工审阅的部分，请确保不遗漏。"
+
+claude -p "$PROMPT"
+
+echo ""
+if [ -f "$OUTPUT_PATH" ]; then
+  echo "✅ 完成: $OUTPUT_PATH"
+  echo "   字符数: $(wc -m < "$OUTPUT_PATH" | tr -d ' ')"
+else
+  echo "⚠️  没检测到输出文件，可能 claude 没写成功。请检查上面的输出。" >&2
+  exit 1
+fi

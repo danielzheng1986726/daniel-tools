@@ -1,0 +1,38 @@
+# 私密文件
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+*secret*
+# 运行产物
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+# 本地数据与媒体
+data/
+output/
+outputs/
+logs/
+*.log
+*.sqlite
+*.db
+*.mp4
+*.mov
+*.m4a
+*.wav
+*.mp3
+*.livp
+*.ics
+.DS_Store
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate

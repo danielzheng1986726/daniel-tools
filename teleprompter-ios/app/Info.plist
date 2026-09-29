@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- INFOPLIST_KEY_ 不支持这一项，会被静默丢掉；放这里和自动生成的合并。让 App 文件夹出现在「文件 → 我的 iPhone」 -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+</dict>
+</plist>

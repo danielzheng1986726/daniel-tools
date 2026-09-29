@@ -1,0 +1,212 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+		0000000000000000000000C8 = {isa = PBXBuildFile; fileRef = 000000000000000000000064; };
+		0000000000000000000000C9 = {isa = PBXBuildFile; fileRef = 000000000000000000000065; };
+		0000000000000000000000CA = {isa = PBXBuildFile; fileRef = 000000000000000000000066; };
+		0000000000000000000000CB = {isa = PBXBuildFile; fileRef = 000000000000000000000067; };
+		0000000000000000000000CC = {isa = PBXBuildFile; fileRef = 000000000000000000000068; };
+		0000000000000000000000CD = {isa = PBXBuildFile; fileRef = 000000000000000000000069; };
+		0000000000000000000000CE = {isa = PBXBuildFile; fileRef = 00000000000000000000006A; };
+		0000000000000000000000CF = {isa = PBXBuildFile; fileRef = 00000000000000000000006B; };
+		000000000000000000000064 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		000000000000000000000065 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		000000000000000000000066 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrompterEngine.swift; sourceTree = "<group>"; };
+		000000000000000000000067 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrompterView.swift; sourceTree = "<group>"; };
+		000000000000000000000068 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptModel.swift; sourceTree = "<group>"; };
+		000000000000000000000069 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptView.swift; sourceTree = "<group>"; };
+		00000000000000000000006A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
+		00000000000000000000006B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TakeStore.swift; sourceTree = "<group>"; };
+		000000000000000000000006 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Prompter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000008 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (
+			); runOnlyForDeploymentPostprocessing = 0; };
+		000000000000000000000009 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+			); runOnlyForDeploymentPostprocessing = 0; };
+		000000000000000000000007 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+				0000000000000000000000C8,
+				0000000000000000000000C9,
+				0000000000000000000000CA,
+				0000000000000000000000CB,
+				0000000000000000000000CC,
+				0000000000000000000000CD,
+				0000000000000000000000CE,
+				0000000000000000000000CF,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		000000000000000000000003 = {isa = PBXGroup; children = (
+				000000000000000000000004,
+				000000000000000000000005,
+			); sourceTree = "<group>"; };
+		000000000000000000000004 = {isa = PBXGroup; children = (
+				000000000000000000000064,
+				000000000000000000000065,
+				000000000000000000000066,
+				000000000000000000000067,
+				000000000000000000000068,
+				000000000000000000000069,
+				00000000000000000000006A,
+				00000000000000000000006B,
+			); path = Sources; sourceTree = "<group>"; };
+		000000000000000000000005 = {isa = PBXGroup; children = (
+				000000000000000000000006,
+			); name = Products; sourceTree = "<group>"; };
+		000000000000000000000002 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000000000D;
+			buildPhases = (
+				000000000000000000000007,
+				000000000000000000000008,
+				000000000000000000000009,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Prompter;
+			productName = Prompter;
+			productReference = 000000000000000000000006;
+			productType = "com.apple.product-type.application";
+		};
+		000000000000000000000001 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					000000000000000000000002 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = 00000000000000000000000A;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000000003;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 000000000000000000000005;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000002,
+			);
+		};
+		00000000000000000000000B = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		00000000000000000000000C = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		00000000000000000000000E = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "提词";
+				INFOPLIST_KEY_NSCameraUsageDescription = "录口播";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录口播的声音，并用本机识别跟读翻页";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "本机识别你念到哪一句，用来翻页";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "把录好的视频存进相册";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.prompter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		00000000000000000000000F = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "提词";
+				INFOPLIST_KEY_NSCameraUsageDescription = "录口播";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录口播的声音，并用本机识别跟读翻页";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "本机识别你念到哪一句，用来翻页";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "把录好的视频存进相册";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.prompter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		00000000000000000000000A = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000000B,
+				00000000000000000000000C,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000000000D = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000000E,
+				00000000000000000000000F,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+	};
+	rootObject = 000000000000000000000001;
+}

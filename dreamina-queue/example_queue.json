@@ -1,0 +1,15 @@
+[
+  {
+    "image": "assets/example-project/shot01.png",
+    "prompt": "示例镜头描述：人物缓慢转身，背景光线变化",
+    "model_version": "seedance2.0",
+    "duration": 5,
+    "video_resolution": "1080p"
+  },
+  {
+    "image": "assets/example-project/shot02.png",
+    "prompt": "示例镜头描述：镜头缓慢推近",
+    "model_version": "seedance2.0",
+    "duration": 5
+  }
+]

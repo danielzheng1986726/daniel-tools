@@ -1,0 +1,6 @@
+# 核心依赖（article_analyzer.py / web_analyzer.py 实际用到的）
+openai>=1.0.0
+anthropic>=0.18.0
+google-generativeai>=0.3.0
+python-dotenv>=1.0.0
+flask>=3.0.0
