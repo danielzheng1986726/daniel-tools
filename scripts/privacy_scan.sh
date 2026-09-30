@@ -13,8 +13,10 @@ if [ -f "$private_file" ]; then
 else
   echo "提示：没找到 $private_file，只跑了通用规则。"
 fi
-hits=$(grep -rInE --exclude-dir=.git --exclude=privacy_scan.sh "$pat" . || true)
-big=$(find . -path ./.git -prune -o -type f -size +2M -print)
+# 只扫 git 会提交的文件（已跟踪 + 未忽略的新文件）；.git/info/exclude 里的本机文件（如 HANDOFF.md）不算
+files=$(git ls-files -co --exclude-standard | grep -v '^scripts/privacy_scan.sh$')
+hits=$(printf '%s\n' "$files" | tr '\n' '\0' | xargs -0 grep -InE "$pat" 2>/dev/null || true)
+big=$(printf '%s\n' "$files" | while IFS= read -r f; do [ -f "$f" ] && [ "$(wc -c < "$f")" -gt 2097152 ] && echo "$f"; done)
 if [ -n "$hits" ] || [ -n "$big" ]; then
   [ -n "$hits" ] && { echo "== 命中敏感模式："; echo "$hits"; }
   [ -n "$big" ] && { echo "== 超过 2MB 的文件："; echo "$big"; }

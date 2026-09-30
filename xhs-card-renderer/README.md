@@ -34,8 +34,10 @@ emoji: "🌱"
 
 ```bash
 python3 render_xhs_cards.py notes.md -o ./xhs-cards/
-python3 render_xhs_cards.py notes.md -o ./xhs-cards/ --accent "#4F46E5"
+python3 render_xhs_cards.py notes.md -o ./xhs-cards/ --accent "#0F766E" --accent2 "#14B8A6"
 ```
+
+换主题色要两个参数一起给：`--accent` 管标题、分隔线和标签文字，`--accent2` 管列表圆点、封面渐变的后半段和侧边色条。只给 `--accent` 的话，圆点和封面渐变还是默认的靛蓝，两种颜色会混在一起（2026-09-30 实测）。
 
 输出 1080x1440 的 PNG：有 `title` 就先出一张 `cover.png` 封面，再按分页出 `card_1.png`、`card_2.png`……
 
