@@ -20,3 +20,5 @@
 - 迁移说明：原来在哪（只写「私有仓库」或「本机项目」，不写路径）、哪天搬来、搬来时是否重新跑过
 
 新增工具后，同步更新根目录 README 的索引表和网站 `daniel-site/src/content/tools/`。
+
+新增工具走「上架」口令，流程正本在 `~/.agents/skills/shelve-tool/SKILL.md`。根 README 的索引表不要手改，改完网站的 `tools.json` 后跑 `python3 scripts/build_index.py` 重新生成。
