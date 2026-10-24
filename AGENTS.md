@@ -22,3 +22,15 @@
 新增工具后，同步更新根目录 README 的索引表和网站 `daniel-site/src/content/tools/`。
 
 新增工具走「上架」口令，流程正本在 `~/.agents/skills/shelve-tool/SKILL.md`。根 README 的索引表不要手改，改完网站的 `tools.json` 后跑 `python3 scripts/build_index.py` 重新生成。
+
+## 讲解短片的门槛
+
+不是每个工具都配讲解片。上架时就按下面五条判断，五条都过才进「待做」队列，什么时候做由 Daniel 定；有一条不过就列备选或不做，写一句理由。
+
+1. 在用（「用过一次」「已停」不做；刚上架的到做片前再确认一次还在用）
+2. 外行一看就认得这个麻烦（观众是 HR 和小团队，不是程序员）
+3. 用之前和用之后的差别，画面上看得出来
+4. 45 秒讲得完一件事
+5. 能用假数据演示
+
+判断结果和队列记在本机的 HANDOFF.md「讲解片」一节。片子用 guizang-product-video-skill 做，规矩沿用已归档的 tool-promo-videos 项目（竖版 9:16、只有字幕加音乐、片尾不引向 GitHub、画面里只有假数据）。
